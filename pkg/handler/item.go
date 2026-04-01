@@ -1,0 +1,70 @@
+package handler
+
+import (
+	"TO_DO_List"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
+
+func (h *Handler) createItem(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		return
+	}
+
+	listId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		NewErrorResponse(c, http.StatusBadRequest, "invalid list id param")
+		return
+	}
+
+	var input TO_DO_List.TodoItem
+	if err := c.BindJSON(&input); err != nil {
+		NewErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	id, err := h.services.TodoItem.Create(userId, listId, input)
+	
+	if err != nil {
+		NewErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"id": id,
+	})
+
+}
+
+func (h *Handler) getAllItems(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		return
+	}
+
+	listId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		NewErrorResponse(c, http.StatusBadRequest, "invalid list id param")
+		return
+	}
+
+	items, err := h.services.TodoItem.GetAll(userId, listId)
+	if err != nil {
+		NewErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, items)
+}
+
+func (h *Handler) getItemById(c *gin.Context) {
+
+}
+
+func (h *Handler) updateItem(c *gin.Context) {
+
+}
+
+func (h *Handler) deleteItem(c *gin.Context) {
+
+}
