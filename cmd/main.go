@@ -5,7 +5,10 @@ import (
 	"TO_DO_List/pkg/handler"
 	"TO_DO_List/pkg/repository"
 	"TO_DO_List/pkg/service"
+	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -40,11 +43,29 @@ func main() {
 	handlers := handler.NewHandler(services)
 
 	srv := new(TO_DO_List.Server)
-	if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
-		logrus.Fatalf("error occurred while running http server: %s", err.Error())
+	go func() {
+		if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
+			logrus.Fatalf("error occurred while running http server: %s", err.Error())
+		}
+	}()
+
+	logrus.Print("ToDo List started")
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	logrus.Print("ToDo List stopped")
+
+	if err := srv.ShutDown(context.Background()); err != nil {
+		logrus.Errorf("error occurred while shutting down server: %s", err.Error())
 	}
 
+	if err := db.Close(); err != nil {
+		logrus.Errorf("error occurred while closing database connection: %s", err.Error())
+	}
 }
+
 func initConfig() error {
 	viper.AddConfigPath("configs")
 	viper.SetConfigName("config")

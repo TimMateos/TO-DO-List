@@ -15,7 +15,7 @@ func NewTodoItemService(repo repository.TodoItem, listRepo repository.TodoList) 
 }
 func (s *TodoItemService) Create(userId, listId int, item TO_DO_List.TodoItem) (int, error) {
 	_, err := s.listRepo.GetById(userId, listId)
-	if err == nil {
+	if err != nil {
 		return 0, err
 	}
 	return s.repo.Create(listId, item)
@@ -23,4 +23,16 @@ func (s *TodoItemService) Create(userId, listId int, item TO_DO_List.TodoItem) (
 
 func (s *TodoItemService) GetAll(userId, listId int) ([]TO_DO_List.TodoItem, error) {
 	return s.repo.GetAll(userId, listId)
+}
+
+func (s *TodoItemService) GetById(userId, itemId int) (TO_DO_List.TodoItem, error) {
+	return s.repo.GetById(userId, itemId)
+}
+
+func (s *TodoItemService) Delete(userId, itemId int) error {
+	return s.repo.Delete(userId, itemId)
+}
+
+func (s *TodoItemService) Update(userId, itemId int, input TO_DO_List.UpdateItemInput) error {
+	return s.repo.Update(userId, itemId, input)
 }

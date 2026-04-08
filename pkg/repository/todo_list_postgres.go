@@ -55,7 +55,7 @@ func (r *TodoListPostgres) GetById(userId, listId int) (TO_DO_List.TodoList, err
 	query := fmt.Sprintf(`SELECT tl.id, tl.title, tl.description FROM %s tl INNER JOIN %s ul 
                                        ON tl.id = ul.list_id WHERE user_id=$1 AND ul.list_id=$2`, todoListsTable, usersListsTable)
 
-	err := r.db.Get(&list, query, listId)
+	err := r.db.Get(&list, query, userId, listId)
 	return list, err
 }
 
