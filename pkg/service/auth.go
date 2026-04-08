@@ -6,15 +6,14 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
 const (
-	salt      = "1jn2323jhdue28ddhebd"
-	tokenTTL  = 12 * time.Hour
-	signInKey = "#fvvf98dbvir#543u4nr4jf3i4ur"
+	tokenTTL = 12 * time.Hour
 )
 
 type AuthService struct {
@@ -49,7 +48,7 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 		user.ID,
 	})
 
-	return token.SignedString([]byte(signInKey))
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }
 
 func (s *AuthService) ParseToken(accessToken string) (int, error) {
@@ -57,7 +56,7 @@ func (s *AuthService) ParseToken(accessToken string) (int, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
-		return []byte(signInKey), nil
+		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 	if err != nil {
 		return 0, err
@@ -71,6 +70,7 @@ func (s *AuthService) ParseToken(accessToken string) (int, error) {
 }
 
 func generatePasswordHash(password string) string {
+	salt := []byte(os.Getenv("PASSWORD_SALT"))
 	hash := sha1.New()
 	hash.Write([]byte(password))
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))

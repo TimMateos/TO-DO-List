@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 1. Сервис базы данных
+  db:
+    image: postgres:15
+    container_name: todo-db
+    environment:
+      POSTGRES_PASSWORD: '1234'
+    ports:
+      - "5436:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  # 2. Сервис миграций
+  migrate:
+    image: migrate/migrate
+    container_name: todo-migrate
+    volumes:
+      - ./schema:/migrations
+    command:
+      - -path=/migrations
+      - -database=postgres://postgres:1234@db:5432/postgres?sslmode=disable
+      - up
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # 3. Наше Go-приложение
+  app:
+    build: . # Указывает докеру, что нужно собрать образ из Dockerfile в текущей папке
+    container_name: todo-app
+    ports:
+      - "8000:8000" # Пробрасываем порт API наружу
+    depends_on:
+      migrate:
+        # Приложение запустится ТОЛЬКО после того, как миграции успешно завершатся
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:

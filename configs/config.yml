@@ -2,7 +2,7 @@ port: "8000"
 
 db:
   username: "postgres"
-  host: "localhost"
-  port: "5436"
+  host: "db"       # <-- Заменили localhost на имя сервиса в docker-compose
+  port: "5432"     # <-- Заменили 5436 на 5432 (внутри сети докера база слушает стандартный порт)
   dbname: "postgres"
   sslmode: "disable"
